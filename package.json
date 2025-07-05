@@ -21,7 +21,7 @@
   "main": "src/add.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/add.js",
-    "start": "node dist/index.js"
+    "start": "babel-node src/add.js"
   },
   "repository": {
     "type": "git",
