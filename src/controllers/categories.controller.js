@@ -23,7 +23,6 @@ export const categoriesCreate = async (req,res) => {
         const category = await Category.create(req.body);
         res.status(200).json({message:"Thêm thành công"}, category);
     } catch (error) {
-        console.log("CATEGORY CREATE ERROR:", error);
          res.status(500).json(error,"Lỗi")
     }
 }
