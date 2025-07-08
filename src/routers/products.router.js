@@ -1,5 +1,5 @@
 import expree from "express"
-import { getAllProducts, getProductById, productCreate, productDelete, productUpdate } from "../controllers/products.controller";
+import { getAllProducts, getProductById, productCreate, productDelete, productUpdate } from "../controllers/products.controller.js";
 
 const productRouter = expree.Router();
 productRouter.get("/", getAllProducts);

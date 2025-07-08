@@ -1,8 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
-import productRouter from "./routers/products.router";
-import categoriesRouter from "./routers/categories.router";
-import cartRouter from "./routers/cart.router";
+import productRouter from "./routers/products.router.js";
+import categoriesRouter from "./routers/categories.router.js";
+import cartRouter from "./routers/cart.router.js";
 
 dotenv.config();
 
