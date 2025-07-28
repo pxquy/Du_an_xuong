@@ -1,32 +1,32 @@
-import User from "user.model";
+import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// [POST] /signup - Đăng ký
 export const signup = async (req, res) => {
   try {
-    const { userName, email, password, address, numberPhone, gender } =
-      req.body;
+    const { userName, email, password, address, numberPhone, gender } = req.body;
 
     const used = await User.findOne({ email });
-    if (used)
+    if (used) {
       return res.status(400).json({
-        message: "Email này đã tông tại vui lòng thử lại!",
+        message: "Email này đã tồn tại, vui lòng thử lại!",
       });
+    }
 
-    const securityPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       userName,
       email,
-      password: securityPassword,
+      password: hashedPassword,
       address,
       numberPhone,
       gender,
     });
-    securityPassword = undefined;
 
     return res.status(201).json({
-      message: "Đăng ký thanh công!",
+      message: "Đăng ký thành công!",
       data: user,
     });
   } catch (error) {
@@ -37,35 +37,43 @@ export const signup = async (req, res) => {
   }
 };
 
+// [POST] /signin - Đăng nhập
 export const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const used = await User.findOne({ email });
-    if (!used)
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(400).json({
         message: "Tài khoản này không tồn tại!",
       });
+    }
 
-    const passwordCompare = await bcrypt.compare(password, { user: password });
-    if (!passwordCompare)
+    const passwordCompare = await bcrypt.compare(password, user.password);
+    if (!passwordCompare) {
       return res.status(400).json({
-        message: "Nhập sai thông tin mật khẩu vui lòng thử lại!",
+        message: "Nhập sai mật khẩu, vui lòng thử lại!",
       });
+    }
 
-    const user = jwt.sign({ user: _id }, process.env.KEYWORD, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.KEYWORD, {
       expiresIn: "1h",
     });
 
     return res.status(200).json({
       message: "Đăng nhập thành công!",
-      data: user,
+      token,
+      user,
     });
   } catch (error) {
-    res.status(500).json({});
+    return res.status(500).json({
+      message: "Lỗi đăng nhập!",
+      error: error.message,
+    });
   }
 };
 
+// [GET] /users - Danh sách user (có phân trang)
 export const userList = async (req, res) => {
   try {
     const { _page = 1, _limit = 5 } = req.query;
@@ -74,17 +82,75 @@ export const userList = async (req, res) => {
       limit: _limit,
     };
     const userList = await User.paginate({}, options);
-    if (userList.length == 0)
+    if (!userList.docs || userList.docs.length === 0) {
       return res.status(200).json({
         message: "Hiện tại danh sách người dùng đang trống!",
       });
+    }
+
     return res.status(200).json({
       message: "Danh sách người dùng",
       data: userList,
     });
   } catch (error) {
     return res.status(500).json({
-      message: "Lỗi không thể tìm thấy dữu liệu!",
+      message: "Lỗi không thể lấy danh sách người dùng!",
+      error: error.message,
+    });
+  }
+};
+
+// [GET] /users/:id - Lấy user theo ID
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user)
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+
+    return res.status(200).json({
+      message: "Chi tiết người dùng",
+      data: user,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+// [PUT] /users/:id - Cập nhật thông tin user
+export const updateUser = async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+
+    if (!updatedUser)
+      return res.status(404).json({ message: "Người dùng không tồn tại!" });
+
+    return res.status(200).json({
+      message: "Cập nhật người dùng thành công!",
+      data: updatedUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi cập nhật người dùng!",
+      error: error.message,
+    });
+  }
+};
+
+// [DELETE] /users/:id - Xoá user
+export const deleteUser = async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser)
+      return res.status(404).json({ message: "Người dùng không tồn tại!" });
+
+    return res.status(200).json({
+      message: "Xoá người dùng thành công!",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi xoá người dùng!",
       error: error.message,
     });
   }

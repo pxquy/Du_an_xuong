@@ -29,9 +29,15 @@ const ratingSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+const mongoose = require('mongoose');
 
 ratingSchema.plugin(mongoosePaginate);
-
+const ratingSchema = new mongoose.Schema({
+  productId: String,
+  userId: String,
+  comment: String,
+  star: Number,
+}, { timestamps: true });
 const Rating = mongoose.model("Rating", ratingSchema);
 
 export default Rating;

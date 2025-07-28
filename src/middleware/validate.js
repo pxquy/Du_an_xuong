@@ -1,17 +1,10 @@
-export const validateRequest = (schema, target = "body") => {
-  return (req, res, next) => {
+export const validateRequest = (schema) => {
+  return async (req, res, next) => {
     try {
-      const { error } = schema.validate(req[target], { abortEarly: false });
-      if (error) {
-        return res.status(400).json({
-          error: error.details.map((err) => err.message),
-        });
-      }
+      await schema.validate(req.body, { abortEarly: false });
       next();
     } catch (error) {
-      res.status(400).json({
-        error: error.message,
-      });
+      return res.status(400).json({ errors: error.errors });
     }
   };
 };
